@@ -1,0 +1,118 @@
+/* ================================
+   기본 설정
+================================ */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, Pretendard, sans-serif;
+    background: #ffffff;
+}
+
+/* ================================
+   상단 헤더
+================================ */
+.top-header {
+    width: 100%;
+    background: #FF7A00;
+    color: white;
+    padding: 30px 40px;
+    box-sizing: border-box;
+}
+
+.top-header .title {
+    font-size: 36px;
+    font-weight: 800;
+}
+
+.top-header .sub-title {
+    margin-top: 6px;
+    font-size: 15px;
+    opacity: 0.9;
+}
+
+/* ================================
+   메인 컨텐츠
+================================ */
+.content {
+    padding: 40px 60px;
+}
+
+/* 페이지 제목 공통 */
+h2 {
+    font-size: 26px;
+    font-weight: 800;
+    margin-bottom: 20px;
+}
+
+/* ================================
+   테이블 스타일
+================================ */
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    margin-top: 15px;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 14px;
+    margin-top: 15px;
+    min-width: 900px; /* 컬럼 많을 때 자동 스크롤 */
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 10px 12px;
+    white-space: nowrap;
+}
+
+th {
+    background: #f5f5f5;
+    font-weight: bold;
+    text-align: left;
+}
+
+/* ================================
+   버튼 스타일
+================================ */
+.btn-run,
+.search-btn,
+.excel-btn {
+    background: #FF7A00;
+    color: white;
+    padding: 12px 20px;
+    font-size: 15px;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 18px;
+}
+
+.btn-run:hover,
+.search-btn:hover,
+.excel-btn:hover {
+    background: #e68500;
+}
+
+/* input */
+input[type="text"], textarea, select {
+    padding: 10px;
+    font-size: 15px;
+    border: 1px solid #bbb;
+    border-radius: 6px;
+    margin-bottom: 15px;
+}
+
+/* ================================
+   짱구 위치
+================================ */
+.floating-jjanggu {
+    position: fixed;
+    right: 25px;
+    bottom: 25px;
+    width: 130px;
+    opacity: 0.92;
+    pointer-events: none;
+}

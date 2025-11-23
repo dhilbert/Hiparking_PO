@@ -1,0 +1,21 @@
+가상 환경 만들기
+C:\Users\82107\venvs\hip_gauss_yoon\Scripts\Activate.ps1
+
+source gaussyoon/bin/activate
+
+
+
+가상 환경 끄기
+deactivate
+
+
+pip install -r requirements.txt
+
+
+
+
+git status            # 변경 사항 확인
+git add .             # 전체 변경사항 스테이징
+git commit -m "업데이트 내용"   # 커밋 메시지
+git push              # 원격(main 또는 origin의 기본 브랜치)으로 푸시
+hilbert
