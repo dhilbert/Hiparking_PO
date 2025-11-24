@@ -1,0 +1,119 @@
+{% extends "layout.html" %}
+
+{% block page_title %}
+Logs
+{% endblock %}
+
+{% block content %}
+
+<!-- 제목 -->
+<div class="mb-10">
+  <h2 class="text-3xl font-bold text-gray-800">시스템 로그 조회</h2>
+  <p class="text-gray-600 mt-2">날짜, 레벨, 키워드로 시스템 기록을 검색할 수 있습니다.</p>
+</div>
+
+<!-- 검색 영역 -->
+<div class="bg-white rounded-2xl p-6 shadow-md border border-gray-200 mb-12">
+
+  <form method="GET" action="/logs">
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+      <!-- 날짜 -->
+      <div>
+        <label class="block mb-2 text-gray-700 font-medium">날짜</label>
+        <input type="date" name="date" value="{{ date }}" 
+               class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-orange-400">
+      </div>
+
+      <!-- 로그 레벨 -->
+      <div>
+        <label class="block mb-2 text-gray-700 font-medium">로그 레벨</label>
+        <select name="level" class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-orange-400">
+          <option value="">전체</option>
+          <option value="INFO"  {% if level == 'INFO' %}selected{% endif %}>INFO</option>
+          <option value="WARN"  {% if level == 'WARN' %}selected{% endif %}>WARN</option>
+          <option value="ERROR" {% if level == 'ERROR' %}selected{% endif %}>ERROR</option>
+        </select>
+      </div>
+
+      <!-- 키워드 -->
+      <div>
+        <label class="block mb-2 text-gray-700 font-medium">키워드</label>
+        <input type="text" name="keyword" value="{{ keyword }}" placeholder="ex: 주문서 / 결제 / 배포"
+               class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-orange-400">
+      </div>
+
+    </div>
+
+    <div class="flex items-center gap-4 mt-8">
+      <button class="px-6 py-3 bg-orange-500 text-white rounded-xl shadow hover:bg-orange-600">
+        🔍 조회하기
+      </button>
+
+      {% if logs %}
+      <a href="/logs/download?date={{date}}&level={{level}}&keyword={{keyword}}"
+         class="px-6 py-3 bg-gray-800 text-white rounded-xl hover:bg-gray-900">
+        📥 다운로드
+      </a>
+      {% endif %}
+    </div>
+
+  </form>
+</div>
+
+
+<!-- 결과 -->
+{% if logs %}
+
+<div class="mb-6">
+  <h3 class="text-xl font-semibold text-gray-800 mb-3">로그 결과</h3>
+  <div class="h-1 w-20 bg-gradient-to-r from-[#ff6b35] to-[#ff8c5a] rounded-full"></div>
+</div>
+
+<div class="overflow-auto bg-white rounded-2xl border shadow max-h-[600px]">
+  <table class="w-full text-sm text-left border-collapse">
+
+    <thead class="bg-gray-50 border-b">
+      <tr>
+        <th class="py-3 px-4 border-r text-gray-700 font-semibold">시간</th>
+        <th class="py-3 px-4 border-r text-gray-700 font-semibold">레벨</th>
+        <th class="py-3 px-4 border-r text-gray-700 font-semibold">메시지</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for log in logs %}
+      <tr class="border-b hover:bg-gray-50">
+
+        <td class="py-3 px-4 border-r text-gray-700">
+          {{ log.time }}
+        </td>
+
+        <!-- 레벨: 색상 강조 -->
+        <td class="py-3 px-4 border-r font-semibold
+          {% if log.level == 'INFO' %} text-blue-600 {% endif %}
+          {% if log.level == 'WARN' %} text-yellow-600 {% endif %}
+          {% if log.level == 'ERROR' %} text-red-600 {% endif %}
+        ">
+          {{ log.level }}
+        </td>
+
+        <td class="py-3 px-4 text-gray-800">
+          {{ log.message }}
+        </td>
+
+      </tr>
+      {% endfor %}
+    </tbody>
+
+  </table>
+</div>
+
+{% elif searched %}
+<div class="text-center text-gray-600 text-lg mt-10">
+  조회된 로그가 없습니다.
+</div>
+{% endif %}
+
+{% endblock %}

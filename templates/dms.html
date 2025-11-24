@@ -1,0 +1,90 @@
+{% extends "layout.html" %}
+
+{% block page_title %}
+DMS 조회
+{% endblock %}
+
+{% block content %}
+
+<!-- 제목 -->
+<div class="mb-10">
+  <h2 class="text-3xl font-bold text-gray-800">DMS 데이터 조회</h2>
+  <p class="text-gray-600 mt-2">주문서 번호, 차량번호, 날짜 기준으로 DMS 데이터를 조회합니다.</p>
+</div>
+
+<!-- 검색 영역 -->
+<div class="bg-white rounded-2xl p-6 shadow-md border border-gray-200 mb-12">
+
+  <form method="GET" action="/dms">
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+      <!-- 날짜 -->
+      <div>
+        <label class="block mb-2 text-gray-700 font-medium">조회 날짜</label>
+        <input type="date" name="date" class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-orange-400">
+      </div>
+
+      <!-- 주문서번호 -->
+      <div>
+        <label class="block mb-2 text-gray-700 font-medium">주문서 번호</label>
+        <input type="text" name="ordersheet" placeholder="예: 0000010H251120000162"
+          class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-orange-400">
+      </div>
+
+      <!-- 차량번호 -->
+      <div>
+        <label class="block mb-2 text-gray-700 font-medium">차량 번호</label>
+        <input type="text" name="carno" placeholder="예: 12가3456"
+          class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-orange-400">
+      </div>
+
+    </div>
+
+    <!-- 버튼 -->
+    <div class="mt-6">
+      <button class="px-6 py-3 bg-orange-500 text-white rounded-xl shadow hover:bg-orange-600">
+        🔍 조회하기
+      </button>
+    </div>
+
+  </form>
+</div>
+
+<!-- 조회 결과 -->
+{% if results %}
+
+<div class="mb-6">
+  <h3 class="text-xl font-semibold text-gray-800 mb-3">조회 결과</h3>
+  <div class="h-1 w-20 bg-gradient-to-r from-[#ff6b35] to-[#ff8c5a] rounded-full"></div>
+</div>
+
+<div class="overflow-auto bg-white rounded-2xl border shadow">
+  <table class="w-full text-sm text-left border-collapse">
+    <thead class="bg-gray-50 border-b">
+      <tr>
+        {% for col in results[0].keys() %}
+        <th class="py-3 px-4 text-gray-700 font-semibold border-r">{{ col }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for row in results %}
+      <tr class="border-b hover:bg-gray-50">
+        {% for col in row.values() %}
+        <td class="py-3 px-4 border-r">{{ col }}</td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% elif searched %}
+<div class="text-center text-gray-600 text-lg mt-10">
+  조회된 데이터가 없습니다.
+</div>
+{% endif %}
+
+{% endblock %}

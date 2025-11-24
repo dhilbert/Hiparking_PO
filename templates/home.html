@@ -1,23 +1,104 @@
 {% extends "layout.html" %}
+
+{% block page_title %}
+Home
+{% endblock %}
+
 {% block content %}
 
-<h2>HiParking Internal Tool</h2>
+<h1 class="text-3xl font-bold mb-8">대시보드</h1>
 
-<a href="/sql"
-   class="btn-orange"
-   style="margin-right:12px;">
-    1. SQL 실행 페이지
-</a>
+<!-- KPI SECTION -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-14">
 
-<a href="/stat"
-   class="btn-orange"
-   style="margin-right:12px;">
-    2. 통계 조회 페이지
-</a>
+  <!-- KPI 1 -->
+  <div class="p-6 rounded-xl shadow bg-white dark:bg-[#27282b]">
+    <div class="text-gray-500 dark:text-gray-300 text-sm mb-1">오늘 매출</div>
+    <div class="text-3xl font-bold">₩ 1,284,000</div>
+    <div class="text-green-600 text-sm mt-2">▲ 전일 대비 12%</div>
+  </div>
 
-<a href="/ops"
-   class="btn-orange">
-    3. 운영 페이지
-</a>
+  <!-- KPI 2 -->
+  <div class="p-6 rounded-xl shadow bg-white dark:bg-[#27282b]">
+    <div class="text-gray-500 dark:text-gray-300 text-sm mb-1">신규 가입자</div>
+    <div class="text-3xl font-bold">42명</div>
+    <div class="text-blue-600 text-sm mt-2">▲ 어제보다 5명 증가</div>
+  </div>
+
+  <!-- KPI 3 -->
+  <div class="p-6 rounded-xl shadow bg-white dark:bg-[#27282b]">
+    <div class="text-gray-500 dark:text-gray-300 text-sm mb-1">DMS 오류</div>
+    <div class="text-3xl font-bold">3건</div>
+    <div class="text-red-600 text-sm mt-2">▼ 2건 감소</div>
+  </div>
+
+</div>
+
+
+<!-- SECTION TITLE -->
+<h2 class="text-xl font-bold border-l-4 border-orange-500 pl-3 mb-4">데이터 조회</h2>
+
+<!-- DATA QUERY GRID -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-14">
+
+  {% for item in data_query %}
+  <a href="{{ item.url }}"
+     class="p-6 rounded-xl shadow bg-white dark:bg-[#27282b] hover:shadow-lg transition cursor-pointer">
+    <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-4"
+         style="background: linear-gradient(135deg, {{ item.grad_from }}, {{ item.grad_to }});">
+        <i data-lucide="{{ item.icon }}" class="text-white w-6 h-6"></i>
+    </div>
+    <div class="text-lg font-semibold mb-1">{{ item.title }}</div>
+    <div class="text-gray-500 dark:text-gray-300 text-sm">{{ item.desc }}</div>
+  </a>
+  {% endfor %}
+
+</div>
+
+
+
+<!-- SECTION TITLE -->
+<h2 class="text-xl font-bold border-l-4 border-green-500 pl-3 mb-4">데이터 분석</h2>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-14">
+
+  {% for item in analytics %}
+  <a href="{{ item.url }}"
+     class="p-6 rounded-xl shadow bg-white dark:bg-[#27282b] hover:shadow-lg transition cursor-pointer">
+    <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-4"
+         style="background: linear-gradient(135deg, {{ item.grad_from }}, {{ item.grad_to }});">
+        <i data-lucide="{{ item.icon }}" class="text-white w-6 h-6"></i>
+    </div>
+    <div class="text-lg font-semibold mb-1">{{ item.title }}</div>
+    <div class="text-gray-500 dark:text-gray-300 text-sm">{{ item.desc }}</div>
+  </a>
+  {% endfor %}
+
+</div>
+
+
+
+<!-- SECTION TITLE -->
+<h2 class="text-xl font-bold border-l-4 border-pink-500 pl-3 mb-4">리포트</h2>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-14">
+
+  {% for item in reports %}
+  <a href="{{ item.url }}"
+     class="p-6 rounded-xl shadow bg-white dark:bg-[#27282b] hover:shadow-lg transition cursor-pointer">
+    <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-4"
+         style="background: linear-gradient(135deg, {{ item.grad_from }}, {{ item.grad_to }});">
+        <i data-lucide="{{ item.icon }}" class="text-white w-6 h-6"></i>
+    </div>
+    <div class="text-lg font-semibold mb-1">{{ item.title }}</div>
+    <div class="text-gray-500 dark:text-gray-300 text-sm">{{ item.desc }}</div>
+  </a>
+  {% endfor %}
+
+</div>
+
+<script>
+  lucide.createIcons();
+</script>
 
 {% endblock %}

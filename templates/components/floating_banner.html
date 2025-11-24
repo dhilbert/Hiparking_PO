@@ -1,0 +1,28 @@
+<!-- Floating Jjanggu (Image Only) -->
+<div id="floatingBanner"
+     class="fixed bottom-10 right-10 cursor-move z-50">
+
+  <img src="/static/img/jjanggu.png"
+       class="w-32 h-auto drop-shadow-xl">
+
+</div>
+
+<script>
+  const banner = document.getElementById("floatingBanner");
+  let offsetX = 0, offsetY = 0, isDown = false;
+
+  banner.addEventListener('mousedown', (e) => {
+    isDown = true;
+    offsetX = banner.offsetLeft - e.clientX;
+    offsetY = banner.offsetTop - e.clientY;
+  });
+
+  document.addEventListener('mouseup', () => isDown = false);
+
+  document.addEventListener('mousemove', (e) => {
+    if (isDown) {
+      banner.style.left = (e.clientX + offsetX) + 'px';
+      banner.style.top = (e.clientY + offsetY) + 'px';
+    }
+  });
+</script>

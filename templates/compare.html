@@ -1,0 +1,90 @@
+{% extends "layout.html" %}
+
+{% block page_title %}
+Compare
+{% endblock %}
+
+{% block content %}
+
+<!-- 제목 -->
+<div class="mb-10">
+  <h2 class="text-3xl font-bold text-gray-800">1G ↔ 2G 데이터 비교</h2>
+  <p class="text-gray-600 mt-2">1G·2G 매출 데이터를 업로드하여 자동으로 차이를 분석합니다.</p>
+</div>
+
+<!-- 업로드 섹션 -->
+<div class="bg-white rounded-2xl p-6 shadow-md border border-gray-200 mb-12">
+
+  <form method="POST" enctype="multipart/form-data" action="/compare">
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+      <!-- 1G 파일 -->
+      <div>
+        <label class="block mb-2 text-gray-700 font-medium">1G 파일 업로드</label>
+        <input type="file" name="file_1g" accept=".csv,.xls,.xlsx"
+               class="w-full border rounded-lg p-3 bg-gray-50 focus:ring-2 focus:ring-orange-400">
+      </div>
+
+      <!-- 2G 파일 -->
+      <div>
+        <label class="block mb-2 text-gray-700 font-medium">2G 파일 업로드</label>
+        <input type="file" name="file_2g" accept=".csv,.xls,.xlsx"
+               class="w-full border rounded-lg p-3 bg-gray-50 focus:ring-2 focus:ring-orange-400">
+      </div>
+
+    </div>
+
+    <div class="mt-6">
+      <button class="px-6 py-3 bg-orange-500 text-white rounded-xl shadow hover:bg-orange-600">
+        🔍 비교 실행
+      </button>
+    </div>
+
+  </form>
+</div>
+
+<!-- 결과 표시 -->
+{% if results %}
+
+<div class="mb-6">
+  <h3 class="text-xl font-semibold text-gray-800 mb-3">비교 결과</h3>
+  <div class="h-1 w-20 bg-gradient-to-r from-[#ff6b35] to-[#ff8c5a] rounded-full"></div>
+</div>
+
+<div class="overflow-auto bg-white rounded-2xl border shadow">
+  <table class="w-full text-sm text-left border-collapse">
+
+    <thead class="bg-gray-50 border-b">
+      <tr>
+        {% for col in results[0].keys() %}
+        <th class="py-3 px-4 text-gray-700 font-semibold border-r">{{ col }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for row in results %}
+      <tr class="border-b hover:bg-gray-50">
+        {% for col, val in row.items() %}
+        <td class="py-3 px-4 border-r
+          {% if val is string and '불일치' in val %} bg-red-100 text-red-700 font-semibold {% endif %}
+          {% if val is string and '없음' in val %} bg-yellow-100 text-yellow-700 {% endif %}
+        ">
+          {{ val }}
+        </td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+
+  </table>
+</div>
+
+{% elif compared %}
+<div class="text-center text-gray-600 text-lg mt-10">
+  차이가 없습니다. 두 데이터는 동일합니다.
+</div>
+{% endif %}
+
+{% endblock %}

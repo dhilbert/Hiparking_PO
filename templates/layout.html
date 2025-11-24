@@ -1,29 +1,63 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title>HIPARKING PO실</title>
+    <meta charset="UTF-8" />
+    <title>{% block page_title %}{% endblock %}</title>
 
-    <!-- 공통 CSS -->
-    <link rel="stylesheet" href="/static/style.css">
+    <!-- Tailwind -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- lucide icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* HEADER 고정 */
+        .hias-header {
+            background-color: #ff7f4f !important; /* 고정 주황색 */
+        }
+        .hias-header a {
+            color: white !important;
+        }
+        .hias-header .active {
+            background-color: white !important;
+            color: #ff7f4f !important;
+        }
+    </style>
 </head>
 
-<body>
+<body class="bg-[#f9f9f9] dark:bg-[#1b1c1e] text-gray-800 dark:text-gray-100">
 
-<!-- 상단 헤더 -->
-<div class="top-header">
-    <div class="title">HIPARKING PO실</div>
-    <div class="sub-title">HIAS (Hiparking Institute For Advanced Study)</div>
+<!-- NAVIGATION -->
+<nav class="hias-header w-full shadow">
+    <div class="flex items-center justify-center gap-12 py-4 text-sm font-semibold">
+
+        <a href="/"
+           class="px-4 py-2 rounded-lg {% if request.path=='/' %}active{% endif %}">
+            HOME
+        </a>
+
+        <a href="/ours"
+           class="px-4 py-2 rounded-lg {% if '/ours' in request.path %}active{% endif %}">
+            OURS
+        </a>
+
+    </div>
+</nav>
+
+<!-- PAGE CONTENT -->
+<div class="px-8 py-10 max-w-[1400px] mx-auto">
+    {% block content %}{% endblock %}
 </div>
 
-<!-- 페이지별 컨텐츠 -->
-<div class="content">
-    {% block content %}
-    {% endblock %}
-</div>
+<!-- Floating Jjanggu -->
+{% include "components/floating_banner.html" %}
 
-<!-- 오른쪽 아래 짱구 -->
-<img src="/static/jjanggu.png" class="floating-jjanggu">
+<script>
+    lucide.createIcons();
+</script>
 
 </body>
 </html>
