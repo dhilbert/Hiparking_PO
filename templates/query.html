@@ -1,0 +1,183 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<div class="container mx-auto px-6 py-10">
+
+    <!-- 제목 -->
+    <div class="bg-gradient-to-br from-white to-orange-50 rounded-2xl shadow-xl p-8 mb-10 border border-orange-200">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-14 h-14 bg-gradient-to-br from-[#ff6b35] to-[#ff8c5a] rounded-xl flex items-center justify-center">
+                <i class="lucide-terminal text-white text-2xl"></i>
+            </div>
+            <h2 class="text-gray-900 text-2xl font-bold">쿼리 실행 (SQL Runner)</h2>
+        </div>
+
+        <!-- 세로 정렬 -->
+        <div class="flex flex-col gap-6">
+
+            <!-- 환경 선택 -->
+            <div class="flex flex-col">
+                <label class="text-gray-700 font-medium mb-1">환경 선택</label>
+                <select id="env"
+                    class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ff6b35] w-60">
+                    <option value="prod">PROD</option>
+                    <option value="stage">STAGE</option>
+                </select>
+            </div>
+
+            <!-- SQL 입력 -->
+            <div class="flex flex-col">
+                <label class="text-gray-700 font-medium mb-1">SQL 입력</label>
+                <textarea id="sql"
+                    class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ff6b35] w-full resize-none"
+                    style="height: 160px;"></textarea>
+            </div>
+
+            <!-- 실행/엑셀 버튼 -->
+            <div class="flex gap-4 mt-1">
+
+                <button onclick="runQuery()"
+                    class="px-8 py-3 rounded-lg shadow font-semibold"
+                    style="background:#ff6b35; color:white;">
+                    실행
+                </button>
+
+                <button onclick="downloadExcel()"
+                    class="px-8 py-3 rounded-lg shadow font-semibold"
+                    style="background:#0f9d58; color:white;">
+                    엑셀 다운로드
+                </button>
+
+            </div>
+
+        </div>
+
+        <div id="loading" class="mt-4 hidden">
+            <span class="text-gray-600">⏳ 실행 중...</span>
+        </div>
+    </div>
+
+    <!-- 여기 결과 출력 -->
+    <div id="results" class="bg-white rounded-2xl shadow-xl p-6 border border-gray-200"></div>
+
+</div>
+
+
+
+
+
+<!-- 🔥🔥🔥 여기서부터 전체 교체 (script 전체) 🔥🔥🔥 -->
+<script>
+let lastSql = "";
+let lastEnv = "";
+
+/* ===============================
+   실행 버튼 → 여러 SELECT 결과 출력
+   =============================== */
+function runQuery() {
+    const sql = document.getElementById("sql").value;
+    const env = document.getElementById("env").value;
+
+    if (!sql.trim()) {
+        alert("SQL을 입력하세요.");
+        return;
+    }
+
+    lastSql = sql;
+    lastEnv = env;
+
+    document.getElementById("loading").classList.remove("hidden");
+
+    fetch("/query/exec", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sql, env })
+    })
+        .then(res => res.json())
+        .then(data => {
+
+            const container = document.getElementById("results");
+            container.innerHTML = "";
+
+            /* 🔥 핵심: data가 list면 그대로, object면 data.results 사용 */
+            const results = Array.isArray(data) ? data : data.results;
+
+            if (!results) {
+                container.innerHTML = "<p class='text-red-500'>결과 없음 또는 오류 발생</p>";
+                return;
+            }
+
+            let html = "";
+
+            results.forEach((res, idx) => {
+                const rows = res.rows;
+
+                html += `
+                    <div class="mb-10">
+                        <h3 class="text-lg font-bold mb-3">📌 결과 ${idx + 1}</h3>
+                `;
+
+                if (!rows.length) {
+                    html += `<p class='text-gray-500 mb-4'>데이터 없음</p></div>`;
+                    return;
+                }
+
+                let keys = Object.keys(rows[0]);
+                let thead = keys
+                    .map(k => `<th class='px-4 py-3 bg-orange-50 border'>${k}</th>`)
+                    .join("");
+
+                let tbody = rows
+                    .map(r => "<tr>" +
+                        keys.map(k => `<td class='px-4 py-2 border'>${r[k] ?? ""}</td>`).join("")
+                    + "</tr>")
+                    .join("");
+
+                html += `
+                    <div class="overflow-auto max-h-[600px] border rounded-xl mb-4">
+                        <table class="w-full text-sm">
+                            <thead><tr>${thead}</tr></thead>
+                            <tbody>${tbody}</tbody>
+                        </table>
+                    </div>
+                </div>`;
+            });
+
+            container.innerHTML = html;
+        })
+        .finally(() => {
+            document.getElementById("loading").classList.add("hidden");
+        });
+}
+
+
+
+
+/* ===============================
+   엑셀 다운로드 (여러 시트)
+   =============================== */
+function downloadExcel() {
+    if (!lastSql) {
+        alert("먼저 쿼리를 실행하세요.");
+        return;
+    }
+
+    fetch("/query/download", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sql: lastSql, env: lastEnv })
+    })
+        .then(res => res.blob())
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "query_result.xlsx";
+            a.click();
+        });
+}
+</script>
+<!-- 🔥🔥🔥 script 블록 여기까지 전체 교체 🔥🔥🔥 -->
+
+{% endblock %}

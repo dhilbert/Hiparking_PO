@@ -1,37 +1,36 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify, send_file
+from services.query_service import run_sql_query, export_to_excel
 
 app = Flask(__name__)
 
 
 # =========================================
-# HOME PAGE
+# HOME PAGE (메뉴 정리됨)
 # =========================================
 @app.route("/")
 def home():
 
     data_query = [
-        {"title": "통합 데이터 조회", "desc": "모든 데이터를 통합 조회",
-         "url": "/dms", "grad_from": "#3b82f6", "grad_to": "#2563eb", "icon": "lucide-database"},
-
-        {"title": "사용자 데이터 조회", "desc": "사용자 관리",
-         "url": "/users", "grad_from": "#6366f1", "grad_to": "#4f46e5", "icon": "lucide-users"},
-
-        {"title": "주차장 데이터 조회", "desc": "주차장 정보 조회",
-         "url": "/parking", "grad_from": "#a855f7", "grad_to": "#9333ea", "icon": "lucide-car"},
+        {
+            "title": "통합 데이터 조회",
+            "desc": "모든 데이터를 통합 조회",
+            "url": "/dms",
+            "grad_from": "#3b82f6",
+            "grad_to": "#2563eb",
+            "icon": "lucide-database"
+        },
+        {
+            "title": "쿼리 실행",
+            "desc": "PROD / STAGE SQL 실행",
+            "url": "/query",
+            "grad_from": "#ff6b35",
+            "grad_to": "#ff8c5a",
+            "icon": "lucide-terminal"
+        }
     ]
 
-    analytics = [
-        {"title": "통합 분석", "desc": "전사 분석 리포트",
-         "url": "/analytics", "grad_from": "#22c55e", "grad_to": "#16a34a", "icon": "lucide-bar-chart"},
-
-        {"title": "트렌드 분석", "desc": "주간/월간 변화 분석",
-         "url": "/trend", "grad_from": "#10b981", "grad_to": "#059669", "icon": "lucide-trending-up"},
-    ]
-
-    reports = [
-        {"title": "통합 리포트", "desc": "전체 보고서",
-         "url": "/report", "grad_from": "#ec4899", "grad_to": "#db2777", "icon": "lucide-file-text"},
-    ]
+    analytics = []     # 숨김
+    reports = []       # 숨김
 
     return render_template(
         "home.html",
@@ -64,7 +63,7 @@ def ours():
 
 
 # =========================================
-# DMS 조회 PAGE
+# 통합 데이터 조회 (기존 dms)
 # =========================================
 @app.route("/dms")
 def dms():
@@ -75,10 +74,10 @@ def dms():
 
     searched = bool(date or sheet or car)
 
-    # 예시 데이터
     results = []
 
     if searched:
+        # 예시 데이터
         results = [
             {
                 "OrderSheetID": "0000010H251120000162",
@@ -98,110 +97,42 @@ def dms():
 
 
 # =========================================
-# REPORT PAGE
+# 쿼리 실행 PAGE (app1)
 # =========================================
-@app.route("/report")
-def report():
+@app.route("/query")
+def query_page():
+    return render_template("query.html")
 
-    start = request.args.get("start")
-    end = request.args.get("end")
-    type_ = request.args.get("type")
 
-    searched = bool(start or end or type_)
+# SQL 실행 API
+@app.route("/query/exec", methods=["POST"])
+def query_exec():
+    data = request.json
+    sql = data.get("sql")
+    env = data.get("env", "prod")
 
-    results = []
+    try:
+        rows = run_sql_query(sql, env)
+        return jsonify({"result": "OK", "rows": rows})
+    except Exception as e:
+        return jsonify({"result": "ERROR", "message": str(e)})
 
-    if searched:
-        results = [
-            {"날짜": "2025-11-21", "매출": "150,000", "건수": 12},
-            {"날짜": "2025-11-22", "매출": "210,000", "건수": 16},
-        ]
 
-    return render_template(
-        "report.html",
-        results=results,
-        searched=searched,
-        start=start,
-        end=end,
-        type=type_
+# SQL 엑셀 다운로드
+@app.route("/query/download", methods=["POST"])
+def query_download():
+    data = request.json
+    sql = data.get("sql")
+    env = data.get("env", "prod")
+
+    output = export_to_excel(sql, env)
+
+    return send_file(
+        output,
+        as_attachment=True,
+        download_name="query_result.xlsx",
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
-
-
-# =========================================
-# COMPARE PAGE (1G ↔ 2G 비교)
-# =========================================
-@app.route("/compare", methods=["GET", "POST"])
-def compare():
-
-    results = []
-    compared = False
-
-    if request.method == "POST":
-
-        file1 = request.files.get("file_1g")
-        file2 = request.files.get("file_2g")
-
-        compared = True
-
-        # 예시 데이터 (기존 app8.py 비교 로직 연결하면 됨)
-        results = [
-            {"항목": "매출", "1G": "150,000", "2G": "150,000", "비고": "일치"},
-            {"항목": "건수", "1G": "12", "2G": "11", "비고": "불일치"},
-            {"항목": "취소건", "1G": "없음", "2G": "1건", "비고": "불일치"},
-        ]
-
-    return render_template(
-        "compare.html",
-        results=results,
-        compared=compared
-    )
-
-
-# =========================================
-# LOGS PAGE
-# =========================================
-@app.route("/logs")
-def logs():
-
-    date = request.args.get("date")
-    level = request.args.get("level")
-    keyword = request.args.get("keyword")
-
-    searched = bool(date or level or keyword)
-
-    logs = []
-
-    if searched:
-        logs = [
-            {"time": "2025-11-24 03:27:42", "level": "INFO", "message": "라이브 배포 결정"},
-            {"time": "2025-11-24 03:30:33", "level": "WARN", "message": "인바운드 해제 지연"},
-            {"time": "2025-11-24 03:34:59", "level": "ERROR", "message": "데이터 불일치 발생"},
-        ]
-
-    return render_template(
-        "logs.html",
-        logs=logs,
-        searched=searched,
-        date=date,
-        level=level,
-        keyword=keyword
-    )
-
-@app.route("/search")
-def search():
-    q = request.args.get("q")
-
-    if not q:
-        return render_template("search.html", q=q, results=[])
-
-    results = [
-        {"type": "order", "value": "주문서 0000010H251120000162"},
-        {"type": "car",   "value": "차량번호 12가3456"},
-        {"type": "user",  "value": "사용자 김수연 책임"},
-    ]
-
-    return render_template("search.html", q=q, results=results)
-
 
 
 
@@ -209,4 +140,4 @@ def search():
 # RUN
 # =========================================
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5002)
