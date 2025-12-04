@@ -1,0 +1,82 @@
+{% extends "layout.html" %}
+{% block page_title %}가입자 분석{% endblock %}
+
+{% block content %}
+
+<h1 class="text-3xl font-bold mb-8">가입자 분석</h1>
+
+<!-- 최근 30일 가입자 수 -->
+<div class="bg-white p-6 rounded-2xl shadow mb-10">
+  <h2 class="text-xl font-bold mb-4">최근 30일 가입자 수</h2>
+  <canvas id="monthChart" height="120"></canvas>
+</div>
+
+<!-- 시간대별 가입자 수 -->
+<div class="bg-white p-6 rounded-2xl shadow mb-10">
+  <h2 class="text-xl font-bold mb-4">시간대별 가입자 수 (0~23시)</h2>
+  <canvas id="hourChart" height="120"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  /* -------------------------------
+     ① 최근 30일 가입자 수
+     ------------------------------- */
+  const monthData = {{ month_users | tojson }};
+  const monthLabels = monthData.map(d => d.date);
+  const monthValues = monthData.map(d => d.count);
+
+  new Chart(document.getElementById("monthChart"), {
+    type: "line",
+    data: {
+      labels: monthLabels,
+      datasets: [{
+        label: "가입자 수",
+        data: monthValues,
+        borderColor: "#0072ff",
+        backgroundColor: "rgba(0,114,255,0.15)",
+        tension: 0.3,
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+
+
+  /* -------------------------------
+     ② 시간대별 가입자 수
+     ------------------------------- */
+  const hourData = {{ hourly_users | tojson }};
+  const hourLabels = hourData.map(d => d.hour + "시");
+  const hourValues = hourData.map(d => d.count);
+
+  new Chart(document.getElementById("hourChart"), {
+    type: "line",
+    data: {
+      labels: hourLabels,
+      datasets: [{
+        label: "가입자 수",
+        data: hourValues,
+        borderColor: "#ff6f00",
+        backgroundColor: "rgba(255,111,0,0.15)",
+        tension: 0.3,
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+
+</script>
+
+{% endblock %}

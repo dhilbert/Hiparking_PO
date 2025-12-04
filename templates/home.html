@@ -11,90 +11,100 @@ Home
 <!-- KPI SECTION -->
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-14">
 
-  <!-- KPI 1 -->
+  <!-- KPI 1: 오늘 매출 -->
   <div class="p-6 rounded-xl shadow bg-white dark:bg-[#27282b]">
-    <div class="text-gray-500 dark:text-gray-300 text-sm mb-1">오늘 매출</div>
-    <div class="text-3xl font-bold">₩ 1,284,000</div>
-    <div class="text-green-600 text-sm mt-2">▲ 전일 대비 12%</div>
+    <div class="text-gray-500 text-sm mb-1">오늘 매출</div>
+    <div class="text-3xl font-bold">₩ {{ "{:,}".format(sales.today_sales) }}</div>
+
+    {% if sales.is_up %}
+      <div class="text-green-600 text-sm mt-2">▲ 전일 대비 {{ sales.percent }}%</div>
+    {% else %}
+      <div class="text-red-600 text-sm mt-2">▼ 전일 대비 {{ sales.percent }}%</div>
+    {% endif %}
   </div>
 
-  <!-- KPI 2 -->
+  <!-- KPI 2: 오늘 가입자 -->
   <div class="p-6 rounded-xl shadow bg-white dark:bg-[#27282b]">
-    <div class="text-gray-500 dark:text-gray-300 text-sm mb-1">신규 가입자</div>
-    <div class="text-3xl font-bold">42명</div>
-    <div class="text-blue-600 text-sm mt-2">▲ 어제보다 5명 증가</div>
+    <div class="text-gray-500 text-sm mb-1">오늘 가입자</div>
+    <div class="text-3xl font-bold">{{ user_kpi.today }}명</div>
+
+    {% if user_kpi.is_up %}
+      <div class="text-green-600 text-sm mt-2">▲ 전일 대비 {{ user_kpi.percent }}%</div>
+    {% else %}
+      <div class="text-red-600 text-sm mt-2">▼ 전일 대비 {{ user_kpi.percent }}%</div>
+    {% endif %}
   </div>
 
-  <!-- KPI 3 -->
+  <!-- KPI 3: 총 사용자 수 -->
   <div class="p-6 rounded-xl shadow bg-white dark:bg-[#27282b]">
-    <div class="text-gray-500 dark:text-gray-300 text-sm mb-1">DMS 오류</div>
-    <div class="text-3xl font-bold">3건</div>
-    <div class="text-red-600 text-sm mt-2">▼ 2건 감소</div>
+    <div class="text-gray-500 text-sm mb-1">총 사용자 수</div>
+
+    <div class="text-3xl font-bold">
+      {{ "{:,}".format(user_total_kpi.total) }}명
+    </div>
+
+    {% if user_total_kpi.is_up %}
+      <div class="text-green-600 text-sm mt-2">
+        ▲ 오늘 {{ user_total_kpi.delta }}명 증가
+      </div>
+    {% else %}
+      <div class="text-red-600 text-sm mt-2">
+        오늘 신규 가입자 없음
+      </div>
+    {% endif %}
   </div>
 
 </div>
 
 
-<!-- SECTION TITLE -->
+<!-- DATA QUERY -->
 <h2 class="text-xl font-bold border-l-4 border-orange-500 pl-3 mb-4">데이터 조회</h2>
 
-<!-- DATA QUERY GRID -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-14">
-
   {% for item in data_query %}
-  <a href="{{ item.url }}"
-     class="p-6 rounded-xl shadow bg-white dark:bg-[#27282b] hover:shadow-lg transition cursor-pointer">
+  <a href="{{ item.url }}" class="p-6 rounded-xl shadow bg-white dark:bg-[#27282b] hover:shadow-lg transition cursor-pointer">
     <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-4"
          style="background: linear-gradient(135deg, {{ item.grad_from }}, {{ item.grad_to }});">
-        <i data-lucide="{{ item.icon }}" class="text-white w-6 h-6"></i>
+      <i data-lucide="{{ item.icon }}" class="text-white w-6 h-6"></i>
     </div>
     <div class="text-lg font-semibold mb-1">{{ item.title }}</div>
-    <div class="text-gray-500 dark:text-gray-300 text-sm">{{ item.desc }}</div>
+    <div class="text-gray-500 text-sm">{{ item.desc }}</div>
   </a>
   {% endfor %}
-
 </div>
 
 
-
-<!-- SECTION TITLE -->
+<!-- ANALYTICS -->
 <h2 class="text-xl font-bold border-l-4 border-green-500 pl-3 mb-4">데이터 분석</h2>
 
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-14">
-
   {% for item in analytics %}
-  <a href="{{ item.url }}"
-     class="p-6 rounded-xl shadow bg-white dark:bg-[#27282b] hover:shadow-lg transition cursor-pointer">
+  <a href="{{ item.url }}" class="p-6 rounded-xl shadow bg-white dark:bg-[#27282b] hover:shadow-lg transition cursor-pointer">
     <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-4"
          style="background: linear-gradient(135deg, {{ item.grad_from }}, {{ item.grad_to }});">
-        <i data-lucide="{{ item.icon }}" class="text-white w-6 h-6"></i>
+      <i data-lucide="{{ item.icon }}" class="text-white w-6 h-6"></i>
     </div>
     <div class="text-lg font-semibold mb-1">{{ item.title }}</div>
-    <div class="text-gray-500 dark:text-gray-300 text-sm">{{ item.desc }}</div>
+    <div class="text-gray-500 text-sm">{{ item.desc }}</div>
   </a>
   {% endfor %}
-
 </div>
 
 
-
-<!-- SECTION TITLE -->
+<!-- REPORT -->
 <h2 class="text-xl font-bold border-l-4 border-pink-500 pl-3 mb-4">리포트</h2>
 
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-14">
-
   {% for item in reports %}
-  <a href="{{ item.url }}"
-     class="p-6 rounded-xl shadow bg-white dark:bg-[#27282b] hover:shadow-lg transition cursor-pointer">
+  <a href="{{ item.url }}" class="p-6 rounded-xl shadow bg-white dark:bg-[#27282b] hover:shadow-lg transition cursor-pointer">
     <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-4"
          style="background: linear-gradient(135deg, {{ item.grad_from }}, {{ item.grad_to }});">
-        <i data-lucide="{{ item.icon }}" class="text-white w-6 h-6"></i>
+      <i data-lucide="{{ item.icon }}" class="text-white w-6 h-6"></i>
     </div>
     <div class="text-lg font-semibold mb-1">{{ item.title }}</div>
-    <div class="text-gray-500 dark:text-gray-300 text-sm">{{ item.desc }}</div>
+    <div class="text-gray-500 text-sm">{{ item.desc }}</div>
   </a>
   {% endfor %}
-
 </div>
 
 <script>

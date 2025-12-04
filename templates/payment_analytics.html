@@ -1,0 +1,148 @@
+{% extends "layout.html" %}
+{% block page_title %}결제액 분석{% endblock %}
+
+{% block content %}
+
+<h1 class="text-3xl font-bold mb-8">결제액 분석</h1>
+
+<!-- 최근 7일 이용 현황 -->
+<div class="bg-white p-6 rounded-2xl shadow mb-10">
+  <h2 class="text-xl font-bold mb-4">최근 7일 이용 현황</h2>
+  <canvas id="dailyChart" height="110"></canvas>
+</div>
+
+<!-- 매출 비율 -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+
+  <div class="bg-white p-6 rounded-2xl shadow">
+    <h2 class="text-xl font-bold mb-4">결제수단별 매출액 비율</h2>
+    <canvas id="amountChart" height="110"></canvas>
+  </div>
+
+  <div class="bg-white p-6 rounded-2xl shadow">
+    <h2 class="text-xl font-bold mb-4">결제수단별 매출 건수 비율</h2>
+    <canvas id="countChart" height="110"></canvas>
+  </div>
+
+</div>
+
+<!-- 시간대별 매출액 -->
+<div class="bg-white p-6 rounded-2xl shadow mb-10">
+  <h2 class="text-xl font-bold mb-4">시간대별 매출액 (카드 + 현금)</h2>
+  <canvas id="hourSalesChart" height="110"></canvas>
+</div>
+
+<!-- 시간대별 매출 건수 -->
+<div class="bg-white p-6 rounded-2xl shadow mb-10">
+  <h2 class="text-xl font-bold mb-4">시간대별 매출 건수 (카드 + 현금)</h2>
+  <canvas id="hourCountChart" height="110"></canvas>
+</div>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+  /* -------------------------------
+     1) 최근 7일 매출
+  ------------------------------- */
+  const dailyData = {{ daily | tojson }};
+  const dailyLabels = dailyData.map(d => d.date);
+  const dailyValues = dailyData.map(d => d.total);
+
+  new Chart(document.getElementById("dailyChart"), {
+    type: "bar",
+    data: {
+      labels: dailyLabels,
+      datasets: [{
+        label: "매출액",
+        data: dailyValues,
+        backgroundColor: "#ff6f00",
+        borderRadius: 6,
+      }]
+    }
+  });
+
+
+  /* -------------------------------
+     2) 매출액 비율 Pie
+  ------------------------------- */
+  const amount = {{ amount | tojson }};
+
+  new Chart(document.getElementById("amountChart"), {
+    type: "pie",
+    data: {
+      labels: ["카드", "현금"],
+      datasets: [{
+        data: [amount.card, amount.cash],
+        backgroundColor: ["#ff6f00", "#4CAF50"]
+      }]
+    }
+  });
+
+
+  /* -------------------------------
+     3) 매출 건수 Pie
+  ------------------------------- */
+  const countData = {{ count | tojson }};
+
+  new Chart(document.getElementById("countChart"), {
+    type: "pie",
+    data: {
+      labels: ["카드", "현금"],
+      datasets: [{
+        data: [countData.card, countData.cash],
+        backgroundColor: ["#ff6f00", "#4CAF50"]
+      }]
+    }
+  });
+
+
+  /* -------------------------------
+     4) 시간대별 매출액 Line
+  ------------------------------- */
+  const hourlySales = {{ hourly_sales | tojson }};
+  const hourLabels = hourlySales.map(d => d.hour + "시");
+  const hourSalesValues = hourlySales.map(d => d.total);
+
+  new Chart(document.getElementById("hourSalesChart"), {
+    type: "line",
+    data: {
+      labels: hourLabels,
+      datasets: [{
+        label: "매출액",
+        data: hourSalesValues,
+        borderColor: "#0072ff",
+        backgroundColor: "rgba(0,114,255,0.15)",
+        borderWidth: 2,
+        tension: 0.3
+      }]
+    }
+  });
+
+
+  /* -------------------------------
+     5) 시간대별 매출 건수 Line
+  ------------------------------- */
+  const hourlyCount = {{ hourly_count | tojson }};
+  const hourCountValues = hourlyCount.map(d => d.count);
+
+  new Chart(document.getElementById("hourCountChart"), {
+    type: "line",
+    data: {
+      labels: hourLabels,
+      datasets: [{
+        label: "매출 건수",
+        data: hourCountValues,
+        borderColor: "#ff1744",
+        backgroundColor: "rgba(255,23,68,0.15)",
+        borderWidth: 2,
+        tension: 0.3
+      }]
+    }
+  });
+
+</script>
+
+{% endblock %}
