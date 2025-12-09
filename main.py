@@ -37,8 +37,14 @@ from services.user_service import (
 # ============================
 from services.car_service import find_orders_by_car
 
+# ============================
+# 정기권 환불 계산기
+# ============================
+from routes.refund_routes import refund_routes
+
 
 app = Flask(__name__)
+app.register_blueprint(refund_routes)
 
 
 # =========================================
@@ -108,6 +114,14 @@ def home():
             "grad_from": "#10b981",
             "grad_to": "#059669",
             "icon": "lucide-car"
+        },
+        {
+            "title": "정기권 환불 계산",
+            "desc": "요금표 기반 자동 환불 산정",
+            "url": "/refund",
+            "grad_from": "#6366f1",
+            "grad_to": "#4f46e5",
+            "icon": "lucide-calculator"
         }
     ]
 
@@ -291,4 +305,4 @@ def query_download():
 # RUN
 # =========================================
 if __name__ == "__main__":
-    app.run(debug=True, port=5002)
+    app.run(debug=True, port=5001)
