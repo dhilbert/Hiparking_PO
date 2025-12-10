@@ -6,10 +6,7 @@ from datetime import datetime, timedelta
 
 class RefundCalculator:
     """
-    정기권 환불 계산 클래스
-    - FromDate ~ ToDate 동안의 정기권 사용기간에 대해
-      월별 요금, 캡 요금, 환불일자 및 환불 수량을 기반으로
-      환불 금액을 계산하는 로직을 처리한다.
+    정기권 환불 계산기 (최종 완전체)
     """
 
     def __init__(
@@ -46,7 +43,7 @@ class RefundCalculator:
             MonthPrice_1, MonthPrice_2, MonthPrice_3,
             MonthPrice_4, MonthPrice_5, MonthPrice_6,
             MonthPrice_7, MonthPrice_8, MonthPrice_9,
-            MonthPrice_10, MonthPrice_11, MonthPrice_12
+            MonthPrice_10, MonthPrice_11, MonthPrice_12,
         ]
 
         self.cap_weekday = cap_weekday
@@ -56,171 +53,164 @@ class RefundCalculator:
         self.refund_count = refund_count
         self.refund_date = refund_date
 
-    # ============================
-    # 서비스 시작일에 대해 확인
-    # ============================
-    def checkFromDate(self):
+    # =========================================
+    # 시작월 비례 계산
+    # =========================================
+    def calculate_start_price(self):
         dt = datetime.strptime(self.fromDate, "%Y-%m-%d")
-        fromDateDay = dt.day
-        fromDateMonth = dt.month
-        last_day = calendar.monthrange(dt.year, dt.month)[1]
+        day = dt.day
+        month = dt.month
+        last_day = calendar.monthrange(dt.year, month)[1]
 
-        monthly_price = self.price_monthly[fromDateMonth - 1]
+        monthly_price = self.price_monthly[month - 1]
 
-        if fromDateDay < 11:
-            return monthly_price
+        if day < 11:
+            proportional = monthly_price
+        else:
+            proportional = math.floor((monthly_price / last_day) * (last_day - day + 1))
 
-        proportional_price = (monthly_price / last_day) * (last_day-fromDateDay+1)
-        proportional_price = math.floor(proportional_price)
+        return {
+            "start_price": proportional,
+            "explain": f"{monthly_price}원 중 {day}일 시작 → 비례 적용 = {proportional}원"
+        }
 
-        return proportional_price
-
-    # ============================
-    # 시작월 제외 → 종료월까지 MM 금액 배열
-    # ============================
-    def getMonthsBetween(self):
+    # =========================================
+    # 중간월 full price
+    # =========================================
+    def middle_month_prices(self):
         start_dt = datetime.strptime(self.fromDate, "%Y-%m-%d")
         end_dt = datetime.strptime(self.toDate, "%Y-%m-%d")
+        start_m = start_dt.month
+        end_m = end_dt.month
 
-        start_month = start_dt.month
-        end_month = end_dt.month
+        middle_prices = []
+        for m in range(start_m + 1, end_m):
+            middle_prices.append(self.price_monthly[m - 1])
 
-        AmountTotal = []
+        return middle_prices
 
-        for m in range(start_month + 1, end_month + 1):
-            AmountTotal.append(self.price_monthly[m - 1])
+    # =========================================
+    # 종료월 full price
+    # =========================================
+    def end_month_price(self):
+        end_dt = datetime.strptime(self.toDate, "%Y-%m-%d")
+        return self.price_monthly[end_dt.month - 1]
 
-        return AmountTotal
-
-    # ============================
-    # 평일, 토요일, 일요일 카운트
-    # ============================
-    def count_weekday_sat_sun(self):
+    # =========================================
+    # 평일/토/일 카운트 (기이용금)
+    # =========================================
+    def count_usage_and_cost(self):
         start_dt = datetime.strptime(self.fromDate, "%Y-%m-%d")
         end_dt = datetime.strptime(self.refund_date, "%Y-%m-%d")
 
-        if start_dt > end_dt:
-            return {"weekday": 0, "saturday": 0, "sunday": 0}
+        weekday = saturday = sunday = 0
 
-        weekday_count = 0
-        saturday_count = 0
-        sunday_count = 0
+        d = start_dt
+        while d <= end_dt:
+            w = d.weekday()
+            if w <= 4: weekday += 1
+            elif w == 5: saturday += 1
+            else: sunday += 1
+            d += timedelta(days=1)
 
-        current = start_dt
+        usage_cost = (
+            weekday * self.cap_weekday +
+            saturday * self.cap_sat +
+            sunday * self.cap_sun
+        )
 
-        while current <= end_dt:
-            w = current.weekday()  # 0=월, ..., 5=토, 6=일
-
-            if w <= 4:
-                weekday_count += 1
-            elif w == 5:
-                saturday_count += 1
-            else:
-                sunday_count += 1
-
-            current += timedelta(days=1)
+        explain = (
+            f"평일({weekday})*{self.cap_weekday} + "
+            f"토요일({saturday})*{self.cap_sat} + "
+            f"일요일({sunday})*{self.cap_sun} "
+            f"= {usage_cost}원"
+        )
 
         return {
-            "weekday": weekday_count,
-            "saturday": saturday_count,
-            "sunday": sunday_count
+            "usage_cost": usage_cost,
+            "weekday": weekday,
+            "saturday": saturday,
+            "sunday": sunday,
+            "explain": explain
         }
 
-    # ============================
-    # 환불액 산정
-    # ============================
+    # =========================================
+    # 월별 매출 분배 구조 생성
+    # =========================================
+    def create_monthly_sales(self, start_price, middle_prices, end_price):
+        sales = [start_price] + middle_prices + [end_price]
+        return sales
+
+    # =========================================
+    # LIFO 방식 환불 배분
+    # =========================================
+    def distribute_refund(self, monthly_sales, refund_amount):
+        refund_dist = [0] * len(monthly_sales)
+        remain = refund_amount
+
+        for i in reversed(range(len(monthly_sales))):
+            if remain <= 0:
+                break
+
+            can_refund = min(monthly_sales[i], remain)
+            refund_dist[i] = can_refund
+            remain -= can_refund
+
+        final_sales = [monthly_sales[i] - refund_dist[i] for i in range(len(monthly_sales))]
+
+        return refund_dist, final_sales
+
+    # =========================================
+    # 메인 계산
+    # =========================================
     def refundCalc(self):
-        # -----------------------------
-        # 1. 요일별 사용 일수 구하기
-        # -----------------------------
-        counts = self.count_weekday_sat_sun()
-        weekday_cnt = counts["weekday"]
-        saturday_cnt = counts["saturday"]
-        sunday_cnt = counts["sunday"]
+        # 1) 시작월
+        start_info = self.calculate_start_price()
+        start_price = start_info["start_price"]
 
-        # -----------------------------
-        # 2. 기 이용 금액 계산 (캡 요금)
-        # -----------------------------
-        weekday_cost = weekday_cnt * self.cap_weekday
-        saturday_cost = saturday_cnt * self.cap_sat
-        sunday_cost = sunday_cnt * self.cap_sun
+        # 2) 중간월
+        middle_prices = self.middle_month_prices()
+        middle_total = sum(middle_prices)
 
-        total_usage_cost = weekday_cost + saturday_cost + sunday_cost  # 기 이용 금액
+        # 3) 종료월
+        end_price = self.end_month_price()
 
-        # -----------------------------
-        # 3. 시작월 금액 계산
-        # -----------------------------
-        proportional_price = self.checkFromDate()
+        # 4) 정기권 총매출
+        total_parking_pass_price = start_price + middle_total + end_price
 
-        # -----------------------------
-        # 4. 중간월 전체 금액 계산
-        # -----------------------------
-        middle_month_prices = self.getMonthsBetween()
-        AmountTotal = sum(middle_month_prices)
+        # 5) 기이용금
+        usage_info = self.count_usage_and_cost()
+        usage_cost = usage_info["usage_cost"]
 
-        # -----------------------------
-        # 5. 전체 정기권 금액 계산
-        # -----------------------------
-        total_parking_pass_price = proportional_price + AmountTotal
+        # 6) 취소 수수료
+        cancel_fee = math.floor((total_parking_pass_price - usage_cost) * 0.2)
 
-        # -----------------------------
-        # 6. 취소 수수료 계산
-        # -----------------------------
-        cancel_fee = math.floor((total_parking_pass_price - total_usage_cost) * 0.2)
+        # 7) 환불액
+        refund_amount = usage_cost + cancel_fee
+
+        # 8) 월별 매출 배열
+        monthly_sales = self.create_monthly_sales(start_price, middle_prices, end_price)
+
+        # 9) 환불 분배
+        refund_dist, final_sales = self.distribute_refund(monthly_sales, refund_amount)
 
         return {
-            "weekday_days": weekday_cnt,
-            "saturday_days": saturday_cnt,
-            "sunday_days": sunday_cnt,
-            "weekday_cost": weekday_cost,
-            "saturday_cost": saturday_cost,
-            "sunday_cost": sunday_cost,
-            "total_usage_cost": total_usage_cost,
-            "start_month_price": proportional_price,
-            "middle_month_total": AmountTotal,
+            "start_price": start_price,
+            "middle_prices": middle_prices,
+            "end_price": end_price,
+            "middle_total": middle_total,
+
             "total_parking_pass_price": total_parking_pass_price,
-            "cancel_fee": cancel_fee
+            "usage_cost": usage_cost,
+            "cancel_fee": cancel_fee,
+            "refund_amount": refund_amount,
+
+            "monthly_sales": monthly_sales,
+            "refund_dist": refund_dist,
+            "final_sales": final_sales,
+
+            "explain_start": start_info["explain"],
+            "explain_usage": usage_info["explain"],
+            "explain_cancel": f"({total_parking_pass_price} - {usage_cost}) * 0.2 = {cancel_fee}",
+            "explain_refund": f"usage_cost({usage_cost}) + cancel_fee({cancel_fee}) = {refund_amount}",
         }
-
-    # ============================
-    # 전체 실행
-    # ============================
-    def run(self):
-        return {
-            "from_month_price": self.checkFromDate(),
-            "middle_month_prices": self.getMonthsBetween(),
-            "refund_usage_costs": self.refundCalc()
-        }
-
-
-# ======================================
-# 직접 실행 테스트용 main
-# ======================================
-if __name__ == "__main__":
-    calc = RefundCalculator(
-        FromDate="2025-07-24",
-        ToDate="2025-08-31",
-        buy_count=1,
-
-        MonthPrice_1=100000,
-        MonthPrice_2=100000,
-        MonthPrice_3=100000,
-        MonthPrice_4=100000,
-        MonthPrice_5=100000,
-        MonthPrice_6=100000,
-        MonthPrice_7=100000,
-        MonthPrice_8=100000,
-        MonthPrice_9=100000,
-        MonthPrice_10=100000,
-        MonthPrice_11=100000,
-        MonthPrice_12=100000,
-
-        cap_weekday=10000,
-        cap_sat=10000,
-        cap_sun=10000,
-
-        refund_count=1,
-        refund_date="2025-07-29"
-    )
-
-    print(calc.run())

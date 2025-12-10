@@ -3,17 +3,15 @@ from services.refund_service import RefundCalculator
 
 refund_routes = Blueprint("refund_routes", __name__)
 
-
 @refund_routes.route("/refund", methods=["GET", "POST"])
 def refund_page():
     result = None
 
     if request.method == "POST":
-
         calc = RefundCalculator(
             FromDate=request.form.get("FromDate"),
             ToDate=request.form.get("ToDate"),
-            buy_count=int(request.form.get("buy_count")),
+            buy_count=1,
 
             MonthPrice_1=int(request.form.get("MonthPrice_1")),
             MonthPrice_2=int(request.form.get("MonthPrice_2")),
@@ -33,7 +31,7 @@ def refund_page():
             cap_sun=int(request.form.get("cap_sun")),
 
             refund_count=int(request.form.get("refund_count")),
-            refund_date=request.form.get("refund_date")
+            refund_date=request.form.get("refund_date"),
         )
 
         result = calc.refundCalc()

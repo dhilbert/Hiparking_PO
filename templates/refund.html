@@ -1,90 +1,189 @@
 {% extends "layout.html" %}
+{% block page_title %}정기권 환불 계산기{% endblock %}
 
 {% block content %}
-<div class="container" style="max-width: 600px; margin: 0 auto;">
 
-    <h2 style="text-align:center; margin-bottom:20px;">정기권 환불 계산기</h2>
+<div class="container mx-auto px-6 py-10">
 
-    <form method="POST">
+    <!-- 제목 영역 -->
+    <div class="bg-gradient-to-br from-white to-purple-50 rounded-2xl shadow-xl p-8 mb-10 border border-purple-200">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-14 h-14 bg-gradient-to-br from-[#8b5cf6] to-[#7c3aed] rounded-xl flex items-center justify-center">
+                <i data-lucide="calculator" class="text-white text-2xl"></i>
+            </div>
+            <h2 class="text-gray-900 text-2xl font-bold">정기권 환불 계산기</h2>
+        </div>
 
-        <!-- ====================== 요금표 입력 ====================== -->
-        <h3>📌 요금표 입력</h3>
+        <!-- 입력 FORM -->
+        <form method="POST" class="flex flex-col gap-8">
 
-        {% for i in range(1, 13) %}
-            <label>{{ i }}월 요금:</label>
-            <input class="form-control"
-                type="number"
-                name="MonthPrice_{{ i }}"
-                value="{{ request.form.get('MonthPrice_' ~ i, '100000') }}">
-        {% endfor %}
+            <!-- ===== 요금표 ===== -->
+            <div>
+                <h3 class="text-lg font-semibold mb-3 text-gray-700">📌 요금표 입력</h3>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {% for i in range(1, 13) %}
+                        <div>
+                            <label class="block text-gray-600 text-sm mb-1">{{ i }}월 요금</label>
+                            <input class="px-3 py-2 border rounded-lg w-full"
+                                type="number"
+                                name="MonthPrice_{{ i }}"
+                                value="{{ request.form.get('MonthPrice_' ~ i, '100000') }}">
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
 
-        <hr>
+            <!-- ===== 캡 요금 ===== -->
+            <div>
+                <h3 class="text-lg font-semibold mb-3 text-gray-700">📌 캡 요금</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-gray-600 mb-1">평일 일최대 요금</label>
+                        <input class="px-3 py-2 border rounded-lg w-full"
+                               type="number" name="cap_weekday"
+                               value="{{ request.form.get('cap_weekday', '10000') }}">
+                    </div>
+                    <div>
+                        <label class="block text-gray-600 mb-1">토요일 일최대 요금</label>
+                        <input class="px-3 py-2 border rounded-lg w-full"
+                               type="number" name="cap_sat"
+                               value="{{ request.form.get('cap_sat', '8000') }}">
+                    </div>
+                    <div>
+                        <label class="block text-gray-600 mb-1">일요일 일최대 요금</label>
+                        <input class="px-3 py-2 border rounded-lg w-full"
+                               type="number" name="cap_sun"
+                               value="{{ request.form.get('cap_sun', '5000') }}">
+                    </div>
+                </div>
+            </div>
 
-        <!-- ====================== 캡 요금 ====================== -->
-        <h3>📌 캡 요금</h3>
+            <!-- ===== 서비스 기간 ===== -->
+            <div>
+                <h3 class="text-lg font-semibold mb-3 text-gray-700">📌 서비스 기간</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-gray-600 mb-1">서비스 시작일</label>
+                        <input class="px-3 py-2 border rounded-lg w-full"
+                               type="date" name="FromDate"
+                               value="{{ request.form.get('FromDate', '2025-10-13') }}">
+                    </div>
 
-        <label>평일 일최대요금:</label>
-        <input class="form-control" type="number" name="cap_weekday"
-               value="{{ request.form.get('cap_weekday', '10000') }}">
+                    <div>
+                        <label class="block text-gray-600 mb-1">서비스 종료일</label>
+                        <input class="px-3 py-2 border rounded-lg w-full"
+                               type="date" name="ToDate"
+                               value="{{ request.form.get('ToDate', '2025-12-31') }}">
+                    </div>
 
-        <label>토요일 일최대요금:</label>
-        <input class="form-control" type="number" name="cap_sat"
-               value="{{ request.form.get('cap_sat', '8000') }}">
+                    <div>
+                        <label class="block text-gray-600 mb-1">구매 수량</label>
+                        <input class="px-3 py-2 border rounded-lg w-full"
+                               type="number" name="buy_count"
+                               value="{{ request.form.get('buy_count', '1') }}">
+                    </div>
+                </div>
+            </div>
 
-        <label>일요일 일최대요금:</label>
-        <input class="form-control" type="number" name="cap_sun"
-               value="{{ request.form.get('cap_sun', '5000') }}">
+            <!-- ===== 환불 정보 ===== -->
+            <div>
+                <h3 class="text-lg font-semibold mb-3 text-gray-700">📌 환불 정보</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-gray-600 mb-1">환불 요청 수량</label>
+                        <input class="px-3 py-2 border rounded-lg w-full"
+                               type="number" name="refund_count"
+                               value="{{ request.form.get('refund_count', '1') }}">
+                    </div>
 
-        <hr>
+                    <div>
+                        <label class="block text-gray-600 mb-1">환불일자</label>
+                        <input class="px-3 py-2 border rounded-lg w-full"
+                               type="date" name="refund_date"
+                               value="{{ request.form.get('refund_date', '2025-11-06') }}">
+                    </div>
+                </div>
+            </div>
 
-        <!-- ====================== 서비스 기간 ====================== -->
-        <h3>📌 서비스 기간</h3>
+            <!-- ===== 계산 버튼 ===== -->
+            <div>
+                <button class="px-8 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl shadow font-semibold">
+                    계산하기
+                </button>
+            </div>
 
-        <label>서비스 시작일:</label>
-        <input class="form-control" type="date" name="FromDate"
-               value="{{ request.form.get('FromDate', '2025-10-13') }}">
+        </form>
+    </div>
 
-        <label>서비스 종료일:</label>
-        <input class="form-control" type="date" name="ToDate"
-               value="{{ request.form.get('ToDate', '2025-12-31') }}">
-
-        <label>구매수량:</label>
-        <input class="form-control" type="number" name="buy_count"
-               value="{{ request.form.get('buy_count', '1') }}">
-
-        <hr>
-
-        <!-- ====================== 환불 정보 ====================== -->
-        <h3>📌 환불 정보</h3>
-
-        <label>환불 요청 수량:</label>
-        <input class="form-control" type="number" name="refund_count"
-               value="{{ request.form.get('refund_count', '1') }}">
-
-        <label>환불일자:</label>
-        <input class="form-control" type="date" name="refund_date"
-               value="{{ request.form.get('refund_date', '2025-11-06') }}">
-
-        <button class="btn btn-primary" style="margin-top:20px;">계산하기</button>
-
-    </form>
-
-    <!-- ====================== 출력표 ====================== -->
+    <!-- ============================ -->
+    <!-- 결과 출력 영역 -->
+    <!-- ============================ -->
     {% if result %}
-        <h3 style="margin-top:30px;">📌 출력표</h3>
+    <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
 
-        <div class="alert alert-info">
-            승인 금액: <b>{{ result.total_parking_pass_price }}</b>
+        <h3 class="text-xl font-bold mb-6">📌 계산 결과 요약</h3>
+
+        <!-- 승인 / 취소 / 환불액 -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+            <div class="bg-blue-50 p-4 rounded-xl border border-blue-200">
+                <div class="font-semibold text-blue-800">정기권 총 금액</div>
+                <div class="text-2xl font-bold">{{ result.total_parking_pass_price }}원</div>
+                <div class="text-sm text-blue-700 mt-1">
+                    ✔ {{ result.explain_start }}<br>
+                    ✔ 중간월 합: {{ result.middle_total }}원<br>
+                    ✔ 종료월: {{ result.end_price }}원
+                </div>
+            </div>
+
+            <div class="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
+                <div class="font-semibold text-yellow-800">기이용 금액</div>
+                <div class="text-2xl font-bold">{{ result.usage_cost }}원</div>
+                <div class="text-sm text-yellow-700 mt-1">
+                    ✔ {{ result.explain_usage }}
+                </div>
+            </div>
+
+            <div class="bg-red-50 p-4 rounded-xl border border-red-200">
+                <div class="font-semibold text-red-800">환불액 (기이용금 + 수수료)</div>
+                <div class="text-2xl font-bold">{{ result.refund_amount }}원</div>
+                <div class="text-sm text-red-700 mt-1">
+                    ✔ {{ result.explain_refund }}<br>
+                    ✔ 취소 수수료: {{ result.cancel_fee }}원 ({{ result.explain_cancel }})
+                </div>
+            </div>
+
         </div>
 
-        <div class="alert alert-warning">
-            취소 금액: <b>{{ result.middle_month_total + result.cancel_fee }}</b>
-        </div>
+        <!-- ============================ -->
+        <!-- 월별 매출/환불 테이블 -->
+        <!-- ============================ -->
+        <h3 class="text-lg font-bold mt-10 mb-4">📌 월별 매출 / 환불 배분</h3>
 
-        <div class="alert alert-success">
-            취소 잔액: <b>{{ result.total_parking_pass_price - (result.middle_month_total + result.cancel_fee) }}</b>
-        </div>
+        <table class="w-full text-sm border">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="border px-3 py-2">월</th>
+                    <th class="border px-3 py-2">매출액</th>
+                    <th class="border px-3 py-2 text-red-600">환불액</th>
+                    <th class="border px-3 py-2">정산 후 금액</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in range(result.monthly_sales|length) %}
+                <tr>
+                    <td class="border px-3 py-2">{{ i+1 }}월</td>
+                    <td class="border px-3 py-2">{{ result.monthly_sales[i] }}</td>
+                    <td class="border px-3 py-2 text-red-600">{{ result.refund_dist[i] }}</td>
+                    <td class="border px-3 py-2 font-semibold">{{ result.final_sales[i] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    </div>
     {% endif %}
 
 </div>
+
 {% endblock %}
