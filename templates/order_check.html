@@ -1,0 +1,127 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<div class="container mx-auto px-6 py-10">
+
+    <!-- 제목 -->
+    <div class="bg-gradient-to-br from-white to-orange-50 rounded-2xl shadow-xl p-8 mb-10 border border-orange-200">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-14 h-14 bg-gradient-to-br from-[#8b5cf6] to-[#7c3aed] rounded-xl flex items-center justify-center">
+                <i class="lucide-search text-white text-2xl"></i>
+            </div>
+            <h2 class="text-gray-900 text-2xl font-bold">주문 통합 조회</h2>
+        </div>
+
+        <!-- 입력 영역 -->
+        <div class="flex flex-col gap-6">
+
+            <!-- 주문번호 입력 -->
+            <div class="flex flex-col">
+                <label class="text-gray-700 font-medium mb-1">OrderSheet / TicketID / URL 전체</label>
+                <input id="searchKey"
+                    class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8b5cf6] w-full"
+                    placeholder="예: 0000010H251120000162 또는 URL 전체">
+            </div>
+
+            <!-- 버튼 -->
+            <div class="flex gap-4">
+                <button onclick="searchOrder()"
+                    class="px-8 py-3 rounded-lg shadow font-semibold"
+                    style="background:#7c3aed; color:white;">
+                    조회
+                </button>
+
+                <button onclick="downloadExcel()"
+                    class="px-8 py-3 rounded-lg shadow font-semibold"
+                    style="background:#0f9d58; color:white;">
+                    엑셀 다운로드
+                </button>
+            </div>
+
+        </div>
+
+        <div id="loading" class="mt-4 hidden">
+            <span class="text-gray-600">⏳ 조회 중...</span>
+        </div>
+    </div>
+
+    <!-- 결과 출력 -->
+    <div id="results" class="bg-white rounded-2xl shadow-xl p-6 border border-gray-200"></div>
+
+</div>
+
+
+<!-- ===============================
+     JS (prefix 적용된 완전한 버전)
+     =============================== -->
+<script>
+
+let lastKey = "";
+
+/* 결과 테이블 생성 */
+function toTable(name, rows) {
+    const count = rows?.length ?? 0;
+
+    let keys = rows.length ? Object.keys(rows[0]) : [];
+    let header = keys.map(k=>`<th class="px-4 py-2 bg-gray-100 border">${k}</th>`).join("");
+    let body = rows
+        .map(r => "<tr>" +
+            keys.map(k => `<td class="px-4 py-1 border">${r[k] ?? ""}</td>`).join("")
+        + "</tr>")
+        .join("");
+
+    return `
+        <div class="mb-10">
+            <h3 class="text-lg font-bold mb-3">${name} (${count}개)</h3>
+            <div class="overflow-auto max-h-[600px] border rounded-xl">
+                <table class="w-full text-sm">
+                    <thead><tr>${header}</tr></thead>
+                    <tbody>${body}</tbody>
+                </table>
+            </div>
+        </div>
+    `;
+}
+
+/* 조회 실행 */
+function searchOrder() {
+    const key = document.getElementById("searchKey").value.trim();
+    if (!key) {
+        alert("검색어를 입력하세요");
+        return;
+    }
+
+    lastKey = key;
+
+    document.getElementById("loading").classList.remove("hidden");
+    document.getElementById("results").innerHTML = "";
+
+    fetch(`/order-check/order-info?key=` + encodeURIComponent(key))
+        .then(res => res.json())
+        .then(data => {
+            let html = "";
+            html += toTable("vtb_dms_order", data.vtb_dms_order);
+            html += toTable("vtb_dms_order_cancel", data.vtb_dms_order_cancel);
+            html += toTable("tb_trade", data.tb_trade);
+
+            document.getElementById("results").innerHTML = html;
+        })
+        .finally(() => {
+            document.getElementById("loading").classList.add("hidden");
+        });
+}
+
+/* 엑셀 다운로드 */
+function downloadExcel() {
+    if (!lastKey) {
+        alert("먼저 조회하세요.");
+        return;
+    }
+    window.location.href =
+        "/order-check/download-excel?key=" + encodeURIComponent(lastKey);
+}
+
+</script>
+
+{% endblock %}

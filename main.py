@@ -42,9 +42,25 @@ from services.car_service import find_orders_by_car
 # ============================
 from routes.refund_routes import refund_routes
 
+# ============================
+# 주문 통합 조회 기능
+# ============================
+from routes.order_check_routes import order_check_routes
 
+
+
+# =========================================
+# Flask App 생성 (★ Blueprint보다 반드시 먼저!)
+# =========================================
 app = Flask(__name__)
+
+
+# =========================================
+# Blueprint 등록 (★ app 생성 이후!)
+# =========================================
 app.register_blueprint(refund_routes)
+app.register_blueprint(order_check_routes)
+
 
 
 # =========================================
@@ -59,7 +75,7 @@ def home():
     sales = get_dashboard_sales("prod")
 
     # ----------------------
-    # 2) 오늘 / 어제 가입자
+    # 2) 오늘 / 어제 가입자 수
     # ----------------------
     today_users = get_today_users("prod")
     yesterday_users = get_yesterday_users("prod")
@@ -88,17 +104,10 @@ def home():
     }
 
     # ----------------------
-    # 4) 메뉴 영역
+    # 4) 메뉴 (좌측)
     # ----------------------
     data_query = [
-        {
-            "title": "통합 데이터 조회",
-            "desc": "모든 데이터를 통합 조회",
-            "url": "/dms",
-            "grad_from": "#3b82f6",
-            "grad_to": "#2563eb",
-            "icon": "lucide-database"
-        },
+
         {
             "title": "쿼리 실행",
             "desc": "PROD / STAGE SQL 실행",
@@ -122,9 +131,20 @@ def home():
             "grad_from": "#6366f1",
             "grad_to": "#4f46e5",
             "icon": "lucide-calculator"
+        },
+        {
+            "title": "주문 통합 조회",
+            "desc": "vtb / cancel / trade 전체 조회",
+            "url": "/order-check",
+            "grad_from": "#8b5cf6",
+            "grad_to": "#7c3aed",
+            "icon": "lucide-search"
         }
     ]
 
+    # ----------------------
+    # 5) 분석 메뉴 (우측)
+    # ----------------------
     analytics = [
         {
             "title": "결제액 분석",
@@ -155,6 +175,7 @@ def home():
     )
 
 
+
 # =========================================
 # 차량번호로 주문서 조회
 # =========================================
@@ -176,6 +197,7 @@ def car_search():
     )
 
 
+
 # =========================================
 # 가입자 분석 페이지
 # =========================================
@@ -192,8 +214,9 @@ def user_analytics():
     )
 
 
+
 # =========================================
-# 결제액 분석 페이지
+# 결제 분석 페이지
 # =========================================
 @app.route("/payment-analytics")
 def payment_analytics():
@@ -212,6 +235,7 @@ def payment_analytics():
         hourly_sales=hourly_sales,
         hourly_count=hourly_count
     )
+
 
 
 # =========================================
@@ -234,6 +258,7 @@ def ours():
     ]
 
     return render_template("ours.html", leader=leader, members=members)
+
 
 
 # =========================================
@@ -264,6 +289,7 @@ def dms():
     return render_template("dms.html", results=results, searched=searched)
 
 
+
 # =========================================
 # QUERY 실행
 # =========================================
@@ -285,6 +311,7 @@ def query_exec():
         return jsonify({"result": "ERROR", "message": str(e)})
 
 
+
 @app.route("/query/download", methods=["POST"])
 def query_download():
     data = request.json
@@ -299,6 +326,7 @@ def query_download():
         download_name="query_result.xlsx",
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
+
 
 
 # =========================================
