@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <title>정기권 환불 계산기</title>
+
+    <!-- Tailwind -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- lucide icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        .header {
+            background-color: #ff7f4f !important;
+        }
+        .header a { color: white !important; }
+        .header .active {
+            background-color: white !important;
+            color: #ff7f4f !important;
+        }
+
+        /* Floating jjanggu */
+        .jjanggu {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 90px;
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%   { transform: translateY(0px); }
+            50%  { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+    </style>
+</head>
+
+<body class="bg-[#f9f9f9] text-gray-800">
+
+<!-- HEADER -->
+<nav class="header w-full shadow">
+    <div class="flex items-center justify-center gap-12 py-4 text-sm font-semibold">
+        <a href="#" class="px-4 py-2 rounded-lg active">REFUND</a>
+    </div>
+</nav>
+
+<!-- PAGE CONTENT -->
+<div class="px-8 py-10 max-w-[1400px] mx-auto">
+
+    <div class="bg-gradient-to-br from-white to-purple-50 rounded-2xl shadow-xl p-8 mb-10 border border-purple-200">
+
+        <h2 class="text-2xl font-bold text-gray-900 mb-8 flex items-center gap-2">
+            <i data-lucide="calculator"></i>
+            정기권 환불 계산기
+        </h2>
+
+        <!-- FORM -->
+        <form id="refundForm" class="flex flex-col gap-10" onsubmit="event.preventDefault(); calculateRefund();">
+
+            <!-- 월별 요금 -->
+            <section>
+                <h3 class="text-lg font-semibold mb-3 text-gray-700">📌 월별 요금 입력</h3>
+
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <script>
+                        for (let i = 1; i <= 12; i++) {
+                            document.write(`
+                                <div>
+                                    <label class="block text-gray-600 text-sm mb-1">${i}월 요금</label>
+                                    <input type="number" id="MonthPrice_${i}" class="px-3 py-2 border rounded-lg w-full" value="100000">
+                                </div>
+                            `);
+                        }
+                    </script>
+                </div>
+            </section>
+
+            <!-- CAP 요금 -->
+            <section>
+                <h3 class="text-lg font-semibold mb-3 text-gray-700">📌 일 최대 요금 (CAP)</h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-gray-600 mb-1">평일 CAP</label>
+                        <input type="number" id="cap_weekday" class="px-3 py-2 border rounded-lg w-full" value="10000">
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-600 mb-1">토요일 CAP</label>
+                        <input type="number" id="cap_sat" class="px-3 py-2 border rounded-lg w-full" value="8000">
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-600 mb-1">일요일 CAP</label>
+                        <input type="number" id="cap_sun" class="px-3 py-2 border rounded-lg w-full" value="5000">
+                    </div>
+                </div>
+            </section>
+
+            <!-- 날짜 -->
+            <section>
+                <h3 class="text-lg font-semibold mb-3 text-gray-700">📌 서비스 기간</h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-gray-600 mb-1">시작일</label>
+                        <input type="date" id="FromDate" class="px-3 py-2 border rounded-lg w-full" value="2025-10-16">
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-600 mb-1">종료일</label>
+                        <input type="date" id="ToDate" class="px-3 py-2 border rounded-lg w-full" value="2025-12-31">
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-600 mb-1">구매 수량</label>
+                        <input type="number" id="buy_count" class="px-3 py-2 border rounded-lg w-full" value="1">
+                    </div>
+                </div>
+            </section>
+
+            <!-- 환불 정보 -->
+            <section>
+                <h3 class="text-lg font-semibold mb-3 text-gray-700">📌 환불 정보</h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-gray-600 mb-1">환불 요청 수량</label>
+                        <input type="number" id="refund_count" class="px-3 py-2 border rounded-lg w-full" value="1">
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-600 mb-1">환불일자</label>
+                        <input type="date" id="refund_date" class="px-3 py-2 border rounded-lg w-full" value="2025-11-06">
+                    </div>
+                </div>
+            </section>
+
+            <button class="px-8 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl shadow font-semibold">
+                계산하기
+            </button>
+        </form>
+    </div>
+
+    <!-- RESULT -->
+    <div id="resultArea"></div>
+</div>
+
+<!-- Floating Jjanggu -->
+<img src="https://i.imgur.com/HrV5N0C.png" class="jjanggu">
+
+<script>
+    lucide.createIcons();
+
+    // 날짜 차이 계산
+    function addDays(date, days) {
+        const result = new Date(date);
+        result.setDate(result.getDate() + days);
+        return result;
+    }
+
+    // REFUND CALC
+    function calculateRefund() {
+        const FromDate = new Date(document.getElementById("FromDate").value);
+        const refundDate = new Date(document.getElementById("refund_date").value);
+        const ToDate = new Date(document.getElementById("ToDate").value);
+
+        const prices = [];
+        for (let i = 1; i <= 12; i++) {
+            prices.push(parseInt(document.getElementById(`MonthPrice_${i}`).value));
+        }
+
+        const cap_weekday = parseInt(document.getElementById("cap_weekday").value);
+        const cap_sat = parseInt(document.getElementById("cap_sat").value);
+        const cap_sun = parseInt(document.getElementById("cap_sun").value);
+
+        // 시작월 계산
+        let startDay = FromDate.getDate();
+        let month = FromDate.getMonth() + 1;
+        let fullPrice = prices[month - 1];
+        let lastDay = new Date(FromDate.getFullYear(), month, 0).getDate();
+
+        let start_price =
+            startDay < 11
+                ? fullPrice
+                : Math.floor((fullPrice / lastDay) * (lastDay - startDay + 1));
+
+        // 중간월 FULL
+        let middle_prices = [];
+        let start_m = FromDate.getMonth() + 1;
+        let end_m = ToDate.getMonth() + 1;
+
+        for (let m = start_m + 1; m < end_m; m++) {
+            middle_prices.push(prices[m - 1]);
+        }
+
+        // 종료월 FULL
+        let end_price = prices[end_m - 1];
+
+        // 전체 정기권 금액
+        let total_pass = start_price + middle_prices.reduce((a,b)=>a+b,0) + end_price;
+
+        // CAP 기이용금
+        let weekday = 0, saturday = 0, sunday = 0;
+        let d = new Date(FromDate);
+
+        while (d <= refundDate) {
+            let w = d.getDay();
+            if (w >= 1 && w <= 5) weekday++;
+            else if (w === 6) saturday++;
+            else sunday++;
+            d = addDays(d, 1);
+        }
+
+        let usage_cost =
+            weekday * cap_weekday +
+            saturday * cap_sat +
+            sunday * cap_sun;
+
+        // 취소 수수료
+        let cancel_fee = Math.floor((total_pass - usage_cost) * 0.2);
+
+        // 최종 환불 금액
+        let refund_amount = total_pass - (usage_cost + cancel_fee);
+
+        // RESULT 출력
+        document.getElementById("resultArea").innerHTML = `
+            <div class="bg-white rounded-2xl shadow-xl p-8 border border-purple-300 mt-10">
+                <h3 class="text-xl font-bold mb-6">📌 계산 결과</h3>
+
+                <p class="mb-2"><b>시작월 금액:</b> ${start_price.toLocaleString()}원</p>
+                <p class="mb-2"><b>중간월 총합:</b> ${middle_prices.reduce((a,b)=>a+b,0).toLocaleString()}원</p>
+                <p class="mb-2"><b>종료월 금액:</b> ${end_price.toLocaleString()}원</p>
+                <p class="mb-2"><b>기이용금:</b> ${usage_cost.toLocaleString()}원</p>
+                <p class="mb-2"><b>취소 수수료(20%):</b> ${cancel_fee.toLocaleString()}원</p>
+
+                <h3 class="text-lg mt-6">
+                    🔥 <b>최종 환불 금액: <span class="text-red-600">${refund_amount.toLocaleString()}원</span></b>
+                </h3>
+            </div>
+        `;
+    }
+</script>
+
+</body>
+</html>

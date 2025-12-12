@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <title>정기권 환불 계산기</title>
+
+    <!-- Tailwind -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+
+    <!-- lucide icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        .hias-header {
+            background-color: #ff7f4f !important;
+        }
+        .hias-header a {
+            color: white !important;
+        }
+        .hias-header .active {
+            background-color: white !important;
+            color: #ff7f4f !important;
+        }
+
+        .detail-box {
+            display: none;
+            background: #fafafa;
+            border-left: 4px solid #8b5cf6;
+            padding: 16px;
+            margin-top: 12px;
+            border-radius: 8px;
+            white-space: pre-line;
+            font-size: 14px;
+            line-height: 1.45;
+        }
+        .detail-toggle {
+            cursor: pointer;
+            user-select: none;
+        }
+    </style>
+</head>
+
+<body class="bg-[#f9f9f9]">
+
+<!-- NAVIGATION -->
+<nav class="hias-header w-full shadow">
+    <div class="flex items-center justify-center gap-12 py-4 text-sm font-semibold">
+        <a class="px-4 py-2 rounded-lg active">HOME</a>
+        <a class="px-4 py-2 rounded-lg">OURS</a>
+    </div>
+</nav>
+
+<!-- PAGE CONTENT -->
+<div class="px-8 py-10 max-w-[1400px] mx-auto">
+
+    <div class="bg-gradient-to-br from-white to-purple-50 rounded-2xl shadow-xl p-8 mb-10 border border-purple-200">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-14 h-14 bg-gradient-to-br from-[#8b5cf6] to-[#7c3aed] rounded-xl flex items-center justify-center">
+                <i data-lucide="calculator" class="text-white text-2xl"></i>
+            </div>
+            <h2 class="text-gray-900 text-2xl font-bold">정기권 환불 계산기 (FULL TRACE MODE)</h2>
+        </div>
+
+        <form id="refundForm" class="flex flex-col gap-8">
+
+            <!-- 요금표 -->
+            <div>
+                <h3 class="text-lg font-semibold mb-3 text-gray-700">📌 요금표 입력</h3>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <script>
+                        for (let i = 1; i <= 12; i++) {
+                            document.write(`
+                                <div>
+                                    <label class="block text-gray-600 text-sm mb-1">${i}월 요금</label>
+                                    <input class="px-3 py-2 border rounded-lg w-full"
+                                           type="number"
+                                           name="MonthPrice_${i}"
+                                           value="100000">
+                                </div>
+                            `);
+                        }
+                    </script>
+                </div>
+            </div>
+
+            <!-- CAP 요금 -->
+            <div>
+                <h3 class="text-lg font-semibold mb-3 text-gray-700">📌 일 최대요금(CAP)</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-gray-600 mb-1">평일 일 최대요금</label>
+                        <input class="px-3 py-2 border rounded-lg w-full" type="number" name="cap_weekday" value="10000">
+                    </div>
+                    <div>
+                        <label class="block text-gray-600 mb-1">토요일 일 최대요금</label>
+                        <input class="px-3 py-2 border rounded-lg w-full" type="number" name="cap_sat" value="8000">
+                    </div>
+                    <div>
+                        <label class="block text-gray-600 mb-1">일요일 일 최대요금</label>
+                        <input class="px-3 py-2 border rounded-lg w-full" type="number" name="cap_sun" value="5000">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 기간 -->
+            <div>
+                <h3 class="text-lg font-semibold mb-3 text-gray-700">📌 서비스 기간</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-gray-600 mb-1">서비스 시작일</label>
+                        <input class="px-3 py-2 border rounded-lg w-full"
+                               type="date" name="FromDate" value="2025-10-13">
+                    </div>
+                    <div>
+                        <label class="block text-gray-600 mb-1">서비스 종료일</label>
+                        <input class="px-3 py-2 border rounded-lg w-full"
+                               type="date" name="ToDate" value="2025-12-31">
+                    </div>
+                    <div>
+                        <label class="block text-gray-600 mb-1">구매 수량</label>
+                        <input class="px-3 py-2 border rounded-lg w-full"
+                               type="number" name="buy_count" value="1">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 환불 정보 -->
+            <div>
+                <h3 class="text-lg font-semibold mb-3 text-gray-700">📌 환불 정보</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-gray-600 mb-1">환불 요청 수량</label>
+                        <input class="px-3 py-2 border rounded-lg w-full"
+                               type="number" name="refund_count" value="1">
+                    </div>
+                    <div>
+                        <label class="block text-gray-600 mb-1">환불 요청일</label>
+                        <input class="px-3 py-2 border rounded-lg w-full"
+                               type="date" name="refund_date" value="2025-11-06">
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit"
+                    class="px-8 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl shadow font-semibold">
+                계산하기
+            </button>
+
+        </form>
+    </div>
+
+    <!-- RESULT -->
+    <div id="resultArea"></div>
+</div>
+
+
+<script>
+/* ------------------------- UTIL ------------------------- */
+
+function daysInMonth(year, month) {
+    return new Date(year, month, 0).getDate();
+}
+function parseDate(str) {
+    const [y, m, d] = str.split("-").map(Number);
+    return new Date(y, m - 1, d);
+}
+function dayName(date) {
+    return ["일요일","월요일","화요일","수요일","목요일","금요일","토요일"][date.getDay()];
+}
+
+/* ------------------------- REFUND CALCULATOR ------------------------- */
+
+function RefundCalculator(data) {
+    this.fromDate = data.FromDate;
+    this.toDate = data.ToDate;
+    this.monthPrices = data.monthPrices;
+    this.cap_weekday = data.cap_weekday;
+    this.cap_sat = data.cap_sat;
+    this.cap_sun = data.cap_sun;
+    this.refund_date = data.refund_date;
+}
+
+/* 시작월 비례 계산 */
+RefundCalculator.prototype.calcStartMonth = function() {
+    let dt = parseDate(this.fromDate);
+    let startDay = dt.getDate();
+    let m = dt.getMonth() + 1;
+    let full = this.monthPrices[m - 1];
+    let totalDays = daysInMonth(dt.getFullYear(), m);
+
+    let proportional =
+        startDay < 11
+            ? full
+            : Math.floor((full / totalDays) * (totalDays - startDay + 1));
+
+    let log =
+`
+📌 시작월 계산
+-------------------------
+월 = ${m}월
+FULL 요금 = ${full.toLocaleString()}원
+시작일 = ${startDay}일
+총 일수 = ${totalDays}일
+
+비례 계산식:
+(FULL / 총일수) = (${full} / ${totalDays}) = ${(full/totalDays).toFixed(4)}
+유효 일수 = ${totalDays} - ${startDay} + 1 = ${totalDays - startDay + 1}
+비례값 = 위 값을 곱한 후 내림(Math.floor)
+
+최종 시작월 금액 = ${proportional.toLocaleString()}원
+`;
+
+    return { value: proportional, log };
+};
+
+/* 중간월 */
+RefundCalculator.prototype.calcMiddleMonths = function() {
+    let s = parseDate(this.fromDate).getMonth() + 1;
+    let e = parseDate(this.toDate).getMonth() + 1;
+
+    let list = [];
+    let log = "📌 중간월 FULL 요금\n-------------------------\n";
+
+    for (let m = s + 1; m < e; m++) {
+        list.push(this.monthPrices[m - 1]);
+        log += `${m}월 FULL = ${this.monthPrices[m - 1].toLocaleString()}원\n`;
+    }
+
+    if (list.length === 0) log += "중간월 없음\n";
+
+    return { list, log };
+};
+
+/* 종료월 */
+RefundCalculator.prototype.calcEndMonth = function() {
+    let m = parseDate(this.toDate).getMonth() + 1;
+    let value = this.monthPrices[m - 1];
+
+    let log =
+`
+📌 종료월 FULL 요금
+-------------------------
+${m}월 FULL = ${value.toLocaleString()}원
+`;
+
+    return { value, log };
+};
+
+/* CAP 기이용금 */
+RefundCalculator.prototype.calcUsageCost = function() {
+    let start = parseDate(this.fromDate);
+    let end = parseDate(this.refund_date);
+
+    let weekday = 0, sat = 0, sun = 0;
+    let total = 0;
+
+    let log =
+"📌 CAP 기반 기이용금 상세\n-------------------------\n";
+
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        let name = dayName(d);
+        let dateStr = d.toISOString().slice(0, 10);
+        let fee = 0;
+
+        if (d.getDay() >= 1 && d.getDay() <= 5) {
+            fee = this.cap_weekday;
+            weekday++;
+            log += `${dateStr} ${name}: 평일 일 최대요금 ${fee.toLocaleString()}원\n`;
+        } else if (d.getDay() === 6) {
+            fee = this.cap_sat;
+            sat++;
+            log += `${dateStr} ${name}: 토요일 일 최대요금 ${fee.toLocaleString()}원\n`;
+        } else {
+            fee = this.cap_sun;
+            sun++;
+            log += `${dateStr} ${name}: 일요일 일 최대요금 ${fee.toLocaleString()}원\n`;
+        }
+
+        total += fee;
+    }
+
+    log += `
+-------------------------
+평일 요일 수 = ${weekday} → ${weekday} * ${this.cap_weekday} = ${(weekday*this.cap_weekday).toLocaleString()}
+토요일 요일 수 = ${sat} → ${sat} * ${this.cap_sat} = ${(sat*this.cap_sat).toLocaleString()}
+일요일 요일 수 = ${sun} → ${sun} * ${this.cap_sun} = ${(sun*this.cap_sun).toLocaleString()}
+
+최종 기이용금 = ${total.toLocaleString()}원
+`;
+
+    return { total, log };
+};
+
+/* LIFO 월별 처리 */
+RefundCalculator.prototype.LIFO = function(months, refundAmount, fromDate, toDate) {
+
+    let sM = parseDate(fromDate).getMonth() + 1;
+    let eM = parseDate(toDate).getMonth() + 1;
+
+    let labels = [];
+    for (let m = sM; m <= eM; m++) labels.push(`${m}월`);
+
+    let refundList = Array(months.length).fill(0);
+    let remain = refundAmount;
+    let log =
+"📌 LIFO 환불 분배 과정\n-------------------------\n";
+
+    for (let i = months.length - 1; i >= 0; i--) {
+        if (remain <= 0) break;
+
+        let month = labels[i];
+        let available = months[i];
+
+        let applied = Math.min(available, remain);
+
+        refundList[i] = applied;
+        remain -= applied;
+
+        log += `[${month}] 매출 ${available.toLocaleString()}원 중 ${applied.toLocaleString()}원 환불 → 남은 금액: ${(available - applied).toLocaleString()}원\n`;
+    }
+
+    let finalSales = months.map((m, i) => m - refundList[i]);
+
+    return { refundList, finalSales, labels, log };
+};
+
+
+/* 최종 계산 */
+RefundCalculator.prototype.calculate = function() {
+
+    let start = this.calcStartMonth();
+    let mid = this.calcMiddleMonths();
+    let end = this.calcEndMonth();
+    let usage = this.calcUsageCost();
+
+    let total =
+        start.value +
+        mid.list.reduce((a,b)=>a+b,0) +
+        end.value;
+
+    let cancel_fee = Math.floor((total - usage.total) * 0.2);
+    let deduct = usage.total + cancel_fee;
+    let refund_amount = total - deduct;
+
+    let months = [start.value, ...mid.list, end.value];
+
+    let lifo = this.LIFO(months, refund_amount, this.fromDate, this.toDate);
+
+    let log =
+start.log +
+"\n" +
+mid.log +
+"\n" +
+end.log +
+`
+📌 총 정기권 금액 계산
+-------------------------
+시작월 = ${start.value.toLocaleString()}
+중간월 합계 = ${mid.list.reduce((a,b)=>a+b,0).toLocaleString()}
+종료월 = ${end.value.toLocaleString()}
+총 정기권 금액 = ${total.toLocaleString()}원
+\n
+` +
+usage.log +
+`
+📌 취소 수수료 계산
+-------------------------
+(정기권금액 ${total} - 기이용금 ${usage.total}) * 0.2
+= ${(total - usage.total)} * 0.2
+= ${cancel_fee.toLocaleString()}원
+\n
+📌 공제액 계산
+-------------------------
+기이용금 ${usage.total.toLocaleString()} + 수수료 ${cancel_fee.toLocaleString()}
+= ${deduct.toLocaleString()}원
+\n
+📌 환불액 계산
+-------------------------
+환불액 = 정기권 금액 ${total.toLocaleString()} - 공제액 ${deduct.toLocaleString()}
+= ${refund_amount.toLocaleString()}원
+\n
+` +
+lifo.log
+;
+
+    return {
+        start: start.value,
+        mid: mid.list,
+        end: end.value,
+        total,
+        usage: usage.total,
+        cancel_fee,
+        deduct,
+        refund_amount,
+        months,
+        refundList: lifo.refundList,
+        finalSales: lifo.finalSales,
+        labels: lifo.labels,
+        log
+    };
+};
+
+
+/* ------------------------- FORM EVENT ------------------------- */
+
+document.getElementById("refundForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    const f = new FormData(this);
+
+    const monthPrices = [];
+    for (let i = 1; i <= 12; i++) monthPrices.push(Number(f.get(`MonthPrice_${i}`)));
+
+    const calc = new RefundCalculator({
+        FromDate: f.get("FromDate"),
+        ToDate: f.get("ToDate"),
+        monthPrices,
+        cap_weekday: Number(f.get("cap_weekday")),
+        cap_sat: Number(f.get("cap_sat")),
+        cap_sun: Number(f.get("cap_sun")),
+        refund_date: f.get("refund_date")
+    });
+
+    const r = calc.calculate();
+    renderResult(r);
+});
+
+
+/* ------------------------- RESULT RENDER ------------------------- */
+
+function renderResult(r) {
+
+    let rows = "";
+    for (let i = 0; i < r.months.length; i++) {
+        rows += `
+            <tr>
+                <td class="border px-3 py-2">${r.labels[i]}</td>
+                <td class="border px-3 py-2">${r.months[i].toLocaleString()}</td>
+                <td class="border px-3 py-2 text-red-600">${r.refundList[i].toLocaleString()}</td>
+                <td class="border px-3 py-2 font-semibold">${r.finalSales[i].toLocaleString()}</td>
+            </tr>
+        `;
+    }
+
+    document.getElementById("resultArea").innerHTML = `
+        <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
+
+            <h3 class="text-xl font-bold mb-6">📌 계산 결과 요약</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                <div class="bg-blue-50 p-4 rounded-xl border border-blue-200">
+                    <div class="font-semibold text-blue-800">정기권 총 금액</div>
+                    <div class="text-2xl font-bold">${r.total.toLocaleString()}원</div>
+                </div>
+
+                <div class="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
+                    <div class="font-semibold text-yellow-800">공제액</div>
+                    <div class="text-2xl font-bold">${r.deduct.toLocaleString()}원</div>
+                </div>
+
+                <div class="bg-green-50 p-4 rounded-xl border border-green-200">
+                    <div class="font-semibold text-green-800">환불액</div>
+                    <div class="text-2xl font-bold">${r.refund_amount.toLocaleString()}원</div>
+                </div>
+            </div>
+
+            <div class="mt-10">
+                <div class="detail-toggle text-purple-700 font-semibold flex items-center gap-2"
+                     onclick="toggleDetail()">
+                    <span>상세보기 (∨)</span>
+                </div>
+
+                <div id="detailBox" class="detail-box">${r.log}</div>
+            </div>
+
+            <h3 class="text-lg font-bold mt-10 mb-4">📌 월별 매출 / 환불 배분 (LIFO)</h3>
+
+            <table class="w-full text-sm border">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="border px-3 py-2">월</th>
+                        <th class="border px-3 py-2">매출액</th>
+                        <th class="border px-3 py-2 text-red-600">환불액(LIFO)</th>
+                        <th class="border px-3 py-2">정산 후 금액</th>
+                    </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+            </table>
+
+        </div>
+    `;
+
+    lucide.createIcons();
+}
+
+
+function toggleDetail() {
+    let box = document.getElementById("detailBox");
+    box.style.display = box.style.display === "block" ? "none" : "block";
+}
+</script>
+
+</body>
+</html>
